@@ -103,6 +103,7 @@ function runSearch() {
         });
 }
 
+//// View all employees
 function view_Employees() {
     var query = "SELECT id, first_name, last_name, role.title, department.name AS department, role.salary, "; 
     query += "manager_id AS manager FROM employee LEFT JOIN role ON employee.role_id = role.role_id ";
@@ -118,6 +119,7 @@ function view_Employees() {
     })
 };
 
+/// Employee by department
 function employees_Department() {
     inquirer
         .prompt ({
@@ -189,74 +191,76 @@ function employees_Department() {
 
 // "Add employee":
 function add_Employee() {
-    inquirer
-        .prompt([
-            {
-                name: "first_name",
-                type: "input",
-                message: "What is the employee's first name?"
-            },
-            {
-                name: "last_name",
-                type: "input",
-                message: "What is the employee's last name?"
-            },
-            {
-                name: "role",
-                type: "list",
-                message: "What is the employee's role?",
-                choices: [
-                    "Sales Lead",
-                    "Sales Person",
-                    "Lead Engineer",
-                    "Software Engineer",
-                    "Account Manager",
-                    "HR Assistant",
-                    "Legal Team Lead",
-                    "Lawyer",
-                    "Accountant"
-                ]
-            },
-            {
-                name: "manager",
-                type: "list",
-                message: "who is the employee's manager?",
-                choices:[
-                    "Will Flores",
-                    "Smith John",
-                    "Tim Legend",
-                    "Speth Simoms",
-                    "Harry Potter",
-                    "Mike Delgado",
-                    "Yen Lim",
-                    "Valentine Steve",
-                    "Max Young",
-                    "Hans Varka",
-                    "Pedro Peters",
-                    "Moon Nelly"
-                ]
-            }
-        ])
-        .then(function(answer) {
-            var query = "INSERT INTO employee SET ?";
+    var query = "SELECT id, first_name, last_name, role.title, manager_id ";
+    query += "FROM employee LEFT JOIN role ON employee.role_id = role.role_id " ;
 
-            connection.query(query, 
-                {            
-                    first_name: answer.first_name,
-                    last_name: answer.last_name,
-                    title: answer.role,
-                    manager_id:answer.manager,
-                }, 
-                function (err, res) {
-                if (err) throw err;
-                console.log();
-                console.log('-------> Here is the list of Employees by the "Department" you selected:');
-                console.log();
-                console.table(res);
+    connection.query(query, function (err, results) {
+        if (err) throw err
 
-                runSearch();
+        inquirer
+            .prompt([
+                {
+                    name: "first_name",
+                    type: "input",
+                    message: "What is the employee's first name?"
+                },
+                {
+                    name: "last_name",
+                    type: "input",
+                    message: "What is the employee's last name?"
+                },
+                { 
+                    name: "role",
+                    type: "list",
+                    message: "What is the employee's role?",
+                    choices: function() {
+                        var roleArray = [];
+
+                            for (var i = 0; i < results.length; i++) {
+                                roleArray.push(results[i].title)
+                                // console.log(results[i].title);
+                            }
+                            return roleArray;
+                    }
+                },
+                {
+                    name: "manager",
+                    type: "list",
+                    message: "who is the employee's manager?",
+                    choices:
+                    function() {
+                        var managerArray = [];
+
+                            for (var i = 0; i < results.length; i++) {
+                                managerArray.push(results[i].manager_id)
+                                // console.log(results[i].manager_id);
+                            }
+                            return managerArray;
+                    }
+                }
+            ])
+            .then(function(answer) {
+                var query = "INSERT INTO employee SET ?";
+
+                connection.query(query, 
+                    {            
+                        first_name: answer.first_name,
+                        last_name: answer.last_name,
+                        title: answer.role,
+                        manager_id:answer.manager,
+                    }, 
+                    function (err) {
+                    if (err) throw err;
+
+                    console.log();
+                    console.log('-------> Here is the list of Employees by the "Department" you selected:');
+                    console.log();
+                    console.table(res);
+
+                    runSearch();
+                })
             })
-        })
+    })
 }
 
 // "Remove employee":
