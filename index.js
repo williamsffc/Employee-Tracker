@@ -151,3 +151,137 @@ function employees_Department() {
         })
 }
 
+// "View all employees by manager":
+// employees_Manager();
+
+// function employees_Manager() {
+//     inquirer
+//         .prompt({
+//             name: "manager",
+//             type: "list",
+//             message: "Which employee do you want to see direct report for?",
+//             choices: [
+//                 "Sales",
+//                 "Engineering",
+//                 "Finance",
+//                 "Legal",
+//                 "HR"
+//             ]
+//         })
+//         .then(function (answer) {
+//             var query = "SELECT id, first_name, last_name, role.title FROM employee ";
+//             query += "LEFT JOIN role ON employee.role_id = role.role_id ";
+//             query += "LEFT JOIN department ON department.department_id = role.department_id ";
+//             query += "WHERE department.name = ? ";
+
+//             connection.query(query, [answer.department], function (err, res) {
+
+//                 if (err) throw err;
+//                 console.log();
+//                 console.log('-------> Here is the list of Employees by the "Department" you selected:');
+//                 console.log();
+//                 console.table(res);
+
+//                 runSearch();
+//             })
+//         })
+// }
+
+// "Add employee":
+function add_Employee() {
+    inquirer
+        .prompt([
+            {
+                name: "first_name",
+                type: "input",
+                message: "What is the employee's first name?"
+            },
+            {
+                name: "last_name",
+                type: "input",
+                message: "What is the employee's last name?"
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "What is the employee's role?",
+                choices: [
+                    "Sales Lead",
+                    "Sales Person",
+                    "Lead Engineer",
+                    "Software Engineer",
+                    "Account Manager",
+                    "HR Assistant",
+                    "Legal Team Lead",
+                    "Lawyer",
+                    "Accountant"
+                ]
+            },
+            {
+                name: "manager",
+                type: "list",
+                message: "who is the employee's manager?",
+                choices:[
+                    "Will Flores",
+                    "Smith John",
+                    "Tim Legend",
+                    "Speth Simoms",
+                    "Harry Potter",
+                    "Mike Delgado",
+                    "Yen Lim",
+                    "Valentine Steve",
+                    "Max Young",
+                    "Hans Varka",
+                    "Pedro Peters",
+                    "Moon Nelly"
+                ]
+            }
+        ])
+        .then(function(answer) {
+            var query = "INSERT INTO employee SET ?";
+
+            connection.query(query, 
+                {            
+                    first_name: answer.first_name,
+                    last_name: answer.last_name,
+                    title: answer.role,
+                    manager_id:answer.manager,
+                }, 
+                function (err, res) {
+                if (err) throw err;
+                console.log();
+                console.log('-------> Here is the list of Employees by the "Department" you selected:');
+                console.log();
+                console.table(res);
+
+                runSearch();
+            })
+        })
+}
+
+// "Remove employee":
+// remove_Employee();
+
+// "Update employee role":
+// update_Role();
+
+// "Update employee manager":
+// update_Manager();
+
+// "View all roles":
+// view_Roles();
+
+// "Add role":
+// add_Role();
+
+// "Remove role":
+// remove_Role();
+
+// "View all departments":
+// view_Departments();
+
+// "Add a department":
+// add_Department();
+
+// "Remove a department":
+// remove_Department();
