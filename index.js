@@ -319,6 +319,74 @@ function remove_Employee() {
 // "Update employee role":
 // update_Role();
 
+
+function update_Role() {
+
+    // var query = "UPDATE role LEFT JOIN employee on employee.role_id = role.role_id ";
+    // query += "SET employee.role_id = 8 WHERE role.role_id = 10 ";
+
+    var query = "SELECT  id, first_name, last_name, role.role_id, role.title FROM employee ";
+    query += "LEFT JOIN role on employee.role_id = role.role_id GROUP BY title";
+
+    // var SQL = "SELECT  id, first_name, last_name, role.role_id, role.title ";
+    // SQL += "FROM employee LEFT JOIN role on employee.role_id = role.role_id GROUP BY title" ;
+
+    connection.query(query, function (err, results) {
+        if (err) throw err
+
+        inquirer
+            .prompt([
+                {
+                    name: "employee_list",
+                    type: "list",
+                    message: "Which employee would you like to update the role for?",
+                    choices: function () {
+                        var employeeArray = [];
+
+                        for (var i = 0; i < results.length; i++) {
+                            employeeArray.push(results[i].id + " " + results[i].first_name + " " + results[i].last_name)
+                            // console.log("array: " + employeeArray);
+                        }
+                        return employeeArray;
+                    }
+                },
+                {
+                    name: "role_list",
+                    type: "list",
+                    message: "what role would you like to update it to?",
+                    choices: function () {
+                        var roleArray = [];
+
+                        for (var i = 0; i < results.length; i++) {
+                            roleArray.push(results[i].title)
+                            // console.log("array: " + employeeArray);
+                        }
+                        return roleArray;
+                    }
+                }
+
+            ])
+            .then(function (answer) {
+
+                var query = "UPDATE role LEFT JOIN employee on employee.role_id = role.role_id ";
+                query += "SET employee.role_id = ? WHERE role.role_id = ?";
+
+                connection.query(query, { id: answer.id },
+                    function (err, res) {
+                        if (err) throw err;
+
+                        console.log(res.affectedRows);
+                        console.log('-------> This Employee has been removed from the list:');
+                        console.log();
+                        console.table(answer);
+
+                        runSearch();
+                    });
+            })
+    })
+
+}
+
 // "Update employee manager":
 // update_Manager();
 
@@ -407,15 +475,12 @@ function add_Department() {
         .then(function (answer) {
 
             var query = "INSERT INTO department SET ? ";
-
             connection.query(query, { name: answer.new_department },
                 function (err, res) {
                     if (err) throw err;
-
-                    console.log(res.affectedRows);
-                    console.log('-------> A new department has been added:');
                     console.log();
-                    console.table(answer);
+                    console.log('-------> A new department [' + answer.new_department + '] has been added:');
+                    console.log();
 
                     runSearch();
                 });
@@ -427,7 +492,7 @@ function remove_Department() {
 
     var query = "SELECT * FROM department ";
 
-    connection.query(query, function (err, results) {
+    connection.query(query, function (err, answer) {
         if (err) throw err
 
         inquirer
@@ -439,11 +504,10 @@ function remove_Department() {
                     choices:
                         function () {
                             var deleteDepartment = [];
-
-                            for (var i = 0; i < results.length; i++) {
-                                deleteDepartment.push(results[i].name)
-
-                                console.log(deleteDepartment)
+                            for (var i = 0; i < answer.length; i++) {
+                                if (answer.delete_department === answer[i].title) {
+                                    deleteDepartment.push(answer[i].name)
+                                }
                             }
                             return deleteDepartment;
                         }
@@ -452,19 +516,13 @@ function remove_Department() {
             .then(function (answer) {
 
                 var query = "DELETE FROM department WHERE ? ";
-
-                connection.query(query,
-                    {
-                        name: results.delete_department
-                    },
+                connection.query(query, {name: answer.delete_department},
                     function (err, res) {
                         if (err) throw err;
-
-                        console.log(res.affectedRows);
-                        console.log('-------> The department selected has been deleted from the database:');
                         console.log();
-                        console.table(answer);
-
+                        console.log('-------> The department [' + answer.delete_department + '] has been deleted from the database:');
+                        console.log();
+        
                         runSearch();
                     })
             });
