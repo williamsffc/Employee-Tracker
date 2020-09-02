@@ -273,52 +273,48 @@ function add_Employee() {
 // "Remove employee":
 function remove_Employee() {
 
-    var query = "SELECT * FROM employee ";
+    var query = "SELECT first_name, last_name FROM employee";
 
-    connection.query(query, function (err, results) {
+    connection.query(query, function (err, answer) {
         if (err) throw err
 
         inquirer
             .prompt([
                 {
-                    name: "employee_list",
+                    name: "delete_employee",
                     type: "list",
-                    message: "Which Employee would you like to remove?",
-                    choices: function () {
-                        var employeeArray = [];
+                    message: "Which [Employee] would you like to remove?",
+                    choices:
+                        function () {
+                            var deleteEmployee = [];
 
-                        for (var i = 0; i < results.length; i++) {
-                            employeeArray.push(results[i].id)
-                            console.log("array: " + employeeArray);
-                            // employeeArray.push(results[i].id + " " + results[i].first_name + " " + results[i].last_name)
+                            for (var i = 0; i < answer.length; i++) {
+                                    deleteEmployee.push(answer[i].last_name)
+                            }
+                            return deleteEmployee;
                         }
-                        return employeeArray;
-                    }
                 }
             ])
             .then(function (answer) {
 
-                var query = "DELETE FROM employee WHERE  id = ?";
-
-                connection.query(query, { id: answer.id },
-                    function (err, res) {
+                var query = "DELETE FROM employee WHERE ?";
+                connection.query(query, { last_name: answer.delete_employee },
+                    function (err, answer) {
                         if (err) throw err;
-
-                        console.log(res.affectedRows);
-                        console.log('-------> This Employee has been removed from the list:');
+                        
                         console.log();
-                        console.table(answer);
+                        console.log('-------> Employee has been removed from the list:');
+                        console.log();
+
 
                         runSearch();
                     });
             })
     })
-
 }
 
 // "Update employee role":
 // update_Role();
-
 
 function update_Role() {
 
@@ -444,7 +440,47 @@ function add_Role() {
 };
 
 // "Remove role":
-// remove_Role();
+function remove_Role() {
+
+    var query = "SELECT * FROM role";
+
+    connection.query(query, function (err, answer) {
+        if (err) throw err
+
+        inquirer
+            .prompt([
+                {
+                    name: "delete_role",
+                    type: "list",
+                    message: "What [role] would you like to delete?",
+                    choices:
+                        function () {
+                            var deleteRole = [];
+
+                            for (var i = 0; i < answer.length; i++) {
+                                if (answer.delete_role === answer[i].name) {
+                                    deleteRole.push(answer[i].title)
+                                }
+                            }
+                            return deleteRole;
+                        }
+                }
+            ])
+            .then(function (answer) {
+
+                var query = "DELETE FROM role WHERE ? ";
+                connection.query(query, { title: answer.delete_role },
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log();
+                        console.log('-------> The role of [' + answer.delete_role + '] has been deleted from the database:');
+                        console.log();
+
+                        runSearch();
+                    })
+            });
+    });
+};
 
 // "View all departments":
 function view_Departments() {
@@ -516,13 +552,13 @@ function remove_Department() {
             .then(function (answer) {
 
                 var query = "DELETE FROM department WHERE ? ";
-                connection.query(query, {name: answer.delete_department},
+                connection.query(query, { name: answer.delete_department },
                     function (err, res) {
                         if (err) throw err;
                         console.log();
                         console.log('-------> The department [' + answer.delete_department + '] has been deleted from the database:');
                         console.log();
-        
+
                         runSearch();
                     })
             });
