@@ -154,40 +154,47 @@ function employees_Department() {
 }
 
 // "View all employees by manager":
-// employees_Manager();
-
 // function employees_Manager() {
-//     inquirer
-//         .prompt({
-//             name: "manager",
-//             type: "list",
-//             message: "Which employee do you want to see direct report for?",
-//             choices: [
-//                 "Sales",
-//                 "Engineering",
-//                 "Finance",
-//                 "Legal",
-//                 "HR"
-//             ]
-//         })
-//         .then(function (answer) {
-//             var query = "SELECT id, first_name, last_name, role.title FROM employee ";
-//             query += "LEFT JOIN role ON employee.role_id = role.role_id ";
-//             query += "LEFT JOIN department ON department.department_id = role.department_id ";
-//             query += "WHERE department.name = ? ";
+//     var query = "SELECT id, first_name, last_name, role.title, manager_id ";
 
-//             connection.query(query, [answer.department], function (err, res) {
+//     connection.query(query, function (err, results) {
+//         if (err) throw err
 
-//                 if (err) throw err;
-//                 console.log();
-//                 console.log('-------> Here is the list of Employees by the "Department" you selected:');
-//                 console.log();
-//                 console.table(res);
+//         inquirer
+//             .prompt({
+//                 name: "employees_by_manager",
+//                 type: "list",
+//                 message: "Which employee do you want to see direct report for?",
+//                 choices: function () {
+//                     var byManager = [];
 
-//                 runSearch();
+//                     for (var i = 0; i < results.length; i++) {
+//                         byManager.push(results[i].title)
+//                         // console.log(results[i].title);
+//                     }
+//                     return byManager;
+//                 }
 //             })
-//         })
+//             .then(function (answer) {
+//                 var query = "SELECT id, first_name, last_name, role.title FROM employee ";
+//                 query += "LEFT JOIN role ON employee.role_id = role.role_id ";
+//                 query += "LEFT JOIN department ON department.department_id = role.department_id ";
+//                 query += "WHERE department.name = ? ";
+
+//                 connection.query(query, [answer.department], function (err, res) {
+
+//                     if (err) throw err;
+//                     console.log();
+//                     console.log('-------> Here is the list of Employees by the "Department" you selected:');
+//                     console.log();
+//                     console.table(res);
+
+//                     runSearch();
+//                 })
+//             })
+//     })
 // }
+
 
 // "Add employee":
 function add_Employee() {
@@ -332,9 +339,41 @@ function view_Roles() {
 };
 
 // "Add role":
-// function add_Role() {
+function add_Role() {
+    inquirer
+        .prompt([
+            {
+                name: "new_role",
+                type: "input",
+                message: "What is the [name of the new role] you would like to add?",
+            },
+            {
+                name: "new_role_salary",
+                type: "input",
+                message: "What would the salary be for this new role?",
+            }
+        ])
+        .then(function (answer) {
 
-// };
+            var query = "INSERT INTO role SET ? ";
+
+            connection.query(query,
+                {
+                    title: answer.new_role,
+                    salary: answer.new_role_salary,
+                },
+                function (err, res) {
+                    if (err) throw err;
+
+                    console.log(res.affectedRows);
+                    console.log('-------> A new role has been added:');
+                    console.log();
+                    console.table(answer);
+
+                    runSearch();
+                });
+        })
+};
 
 // "Remove role":
 // remove_Role();
@@ -347,7 +386,7 @@ function view_Departments() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         console.log();
-        console.log('-------> Here is the list of all Departments:');
+        console.log('-------> Here it is the list of all Departments:');
         console.log();
         console.table(res);
 
@@ -357,7 +396,6 @@ function view_Departments() {
 
 // "Add a department":
 function add_Department() {
-
     inquirer
         .prompt([
             {
@@ -375,7 +413,7 @@ function add_Department() {
                     if (err) throw err;
 
                     console.log(res.affectedRows);
-                    console.log('-------> This Employee has been removed from the list:');
+                    console.log('-------> A new department has been added:');
                     console.log();
                     console.table(answer);
 
@@ -385,4 +423,50 @@ function add_Department() {
 };
 
 // "Remove a department":
-// remove_Department();
+function remove_Department() {
+
+    var query = "SELECT * FROM department ";
+
+    connection.query(query, function (err, results) {
+        if (err) throw err
+
+        inquirer
+            .prompt([
+                {
+                    name: "delete_department",
+                    type: "list",
+                    message: "What [department] would you like to delete?",
+                    choices:
+                        function () {
+                            var deleteDepartment = [];
+
+                            for (var i = 0; i < results.length; i++) {
+                                deleteDepartment.push(results[i].name)
+
+                                console.log(deleteDepartment)
+                            }
+                            return deleteDepartment;
+                        }
+                }
+            ])
+            .then(function (answer) {
+
+                var query = "DELETE FROM department WHERE ? ";
+
+                connection.query(query,
+                    {
+                        name: results.delete_department
+                    },
+                    function (err, res) {
+                        if (err) throw err;
+
+                        console.log(res.affectedRows);
+                        console.log('-------> The department selected has been deleted from the database:');
+                        console.log();
+                        console.table(answer);
+
+                        runSearch();
+                    })
+            });
+    });
+};
