@@ -154,47 +154,49 @@ function employees_Department() {
 }
 
 // "View all employees by manager":
-// function employees_Manager() {
-//     var query = "SELECT id, first_name, last_name, role.title, manager_id ";
 
-//     connection.query(query, function (err, results) {
-//         if (err) throw err
 
-//         inquirer
-//             .prompt({
-//                 name: "employees_by_manager",
-//                 type: "list",
-//                 message: "Which employee do you want to see direct report for?",
-//                 choices: function () {
-//                     var byManager = [];
+function employees_Manager() {
+    var query = "SELECT * FROM employee GROUP by manager_id ";
 
-//                     for (var i = 0; i < results.length; i++) {
-//                         byManager.push(results[i].title)
-//                         // console.log(results[i].title);
-//                     }
-//                     return byManager;
-//                 }
-//             })
-//             .then(function (answer) {
-//                 var query = "SELECT id, first_name, last_name, role.title FROM employee ";
-//                 query += "LEFT JOIN role ON employee.role_id = role.role_id ";
-//                 query += "LEFT JOIN department ON department.department_id = role.department_id ";
-//                 query += "WHERE department.name = ? ";
+    connection.query(query, function (err, answer) {
+        if (err) throw err
 
-//                 connection.query(query, [answer.department], function (err, res) {
+        inquirer
+            .prompt(
+                {
+                    name: "employees_by_manager",
+                    type: "list",
+                    message: "Which manager do you want to see direct report for?",
+                    choices: function () {
+                        var byManager = [];
 
-//                     if (err) throw err;
-//                     console.log();
-//                     console.log('-------> Here is the list of Employees by the "Department" you selected:');
-//                     console.log();
-//                     console.table(res);
+                        for (var i = 0; i < answer.length; i++) {
+                            byManager.push(answer[i].manager_id)
+                        }
+                        return byManager;
+                    }
+                })
+            .then(function (answer) {
+                var query = "SELECT id, last_name, first_name, manager_id AS manager FROM employee where manager_id = ? ";
 
-//                     runSearch();
-//                 })
-//             })
-//     })
-// }
+                connection.query(query, [answer.employees_by_manager],
+                    function (err, res) {
 
+                        if (err) throw err;
+
+                        console.log();
+                        console.log('-------> Here is the list of Employees of ' + answer.employees_by_manager + ' (Manager)');
+                        console.log();
+                        console.table(res);
+
+                        runSearch();
+                    })
+            })
+
+
+    })
+}
 
 // "Add employee":
 function add_Employee() {
@@ -253,16 +255,15 @@ function add_Employee() {
                     {
                         first_name: answer.first_name,
                         last_name: answer.last_name,
-                        role_id: answer.id,
+                        // title: answer.role,
                         // manager_id:answer.manager,
                     },
                     function (err) {
                         if (err) throw err;
 
                         console.log();
-                        console.log('-------> Employee below has been added to the list:');
-                        console.log();
-                        console.table(answer);
+                        console.log('-------> A new employee has been added to the database:');
+                        console.log()
 
                         runSearch();
                     });
@@ -289,7 +290,7 @@ function remove_Employee() {
                             var deleteEmployee = [];
 
                             for (var i = 0; i < answer.length; i++) {
-                                    deleteEmployee.push(answer[i].last_name)
+                                deleteEmployee.push(answer[i].last_name)
                             }
                             return deleteEmployee;
                         }
@@ -301,7 +302,7 @@ function remove_Employee() {
                 connection.query(query, { last_name: answer.delete_employee },
                     function (err, answer) {
                         if (err) throw err;
-                        
+
                         console.log();
                         console.log('-------> Employee has been removed from the list:');
                         console.log();
@@ -314,20 +315,12 @@ function remove_Employee() {
 }
 
 // "Update employee role":
-// update_Role();
-
 function update_Role() {
 
-    // var query = "UPDATE role LEFT JOIN employee on employee.role_id = role.role_id ";
-    // query += "SET employee.role_id = 8 WHERE role.role_id = 10 ";
-
     var query = "SELECT  id, first_name, last_name, role.role_id, role.title FROM employee ";
-    query += "LEFT JOIN role on employee.role_id = role.role_id GROUP BY title";
+    query += "LEFT JOIN role on employee.role_id = role.role_id ";
 
-    // var SQL = "SELECT  id, first_name, last_name, role.role_id, role.title ";
-    // SQL += "FROM employee LEFT JOIN role on employee.role_id = role.role_id GROUP BY title" ;
-
-    connection.query(query, function (err, results) {
+    connection.query(query, function (err, answer) {
         if (err) throw err
 
         inquirer
@@ -339,9 +332,8 @@ function update_Role() {
                     choices: function () {
                         var employeeArray = [];
 
-                        for (var i = 0; i < results.length; i++) {
-                            employeeArray.push(results[i].id + " " + results[i].first_name + " " + results[i].last_name)
-                            // console.log("array: " + employeeArray);
+                        for (var i = 0; i < answer.length; i++) {
+                            employeeArray.push(answer[i].last_name)
                         }
                         return employeeArray;
                     }
@@ -349,32 +341,33 @@ function update_Role() {
                 {
                     name: "role_list",
                     type: "list",
-                    message: "what role would you like to update it to?",
+                    message: "what would the new role be (please choose below)?",
                     choices: function () {
                         var roleArray = [];
 
-                        for (var i = 0; i < results.length; i++) {
-                            roleArray.push(results[i].title)
-                            // console.log("array: " + employeeArray);
+                        for (var i = 0; i < answer.length; i++) {
+                            roleArray.push(answer[i].title)
                         }
                         return roleArray;
+
                     }
                 }
-
             ])
             .then(function (answer) {
 
-                var query = "UPDATE role LEFT JOIN employee on employee.role_id = role.role_id ";
-                query += "SET employee.role_id = ? WHERE role.role_id = ?";
+                var query = "UPDATE employee LEFT JOIN role on employee.role_id = role.role_id "; query += "SET  ? WHERE  ?";
 
-                connection.query(query, { id: answer.id },
-                    function (err, res) {
+                connection.query(query,
+                    [
+                        { title: answer.role_list }, ,
+                        { last_name: answer.employee_list }
+                    ],
+                    function (err, answer) {
                         if (err) throw err;
 
-                        console.log(res.affectedRows);
-                        console.log('-------> This Employee has been removed from the list:');
                         console.log();
-                        console.table(answer);
+                        console.log('-------> The role for the employee has been updated.')
+                        console.log();
 
                         runSearch();
                     });
@@ -384,7 +377,64 @@ function update_Role() {
 }
 
 // "Update employee manager":
-// update_Manager();
+function update_Manager() {
+
+    var query = "SELECT * FROM employee ";
+
+    connection.query(query, function (err, answer) {
+        if (err) throw err
+
+        inquirer
+            .prompt([
+                {
+                    name: "employee_list",
+                    type: "list",
+                    message: "Which employee's manager do you want to update?",
+                    choices: function () {
+                        var employeeArray = [];
+
+                        for (var i = 0; i < answer.length; i++) {
+                            employeeArray.push(answer[i].last_name)
+                        }
+                        return employeeArray;
+                    }
+                },
+                {
+                    name: "manager_list",
+                    type: "list",
+                    message: "Which employee do you want to set as manager for the selected employee?",
+                    choices: function () {
+                        var managerArray = [];
+
+                        for (var i = 0; i < answer.length; i++) {
+                            managerArray.push(answer[i].last_name)
+                        }
+                        return managerArray;
+                    }
+                },
+            ])
+            .then(function (answer) {
+
+                var query = "UPDATE employee SET ? WHERE last_name ?";
+
+                connection.query(query,
+                    {
+                        last_name: answer.employee_list,
+                        last_name: answer.manager_list
+
+                    },
+                    function (err, answer) {
+                        if (err) throw err;
+
+                        console.log();
+                        console.log('-------> The manager for the employee has been updated.')
+                        console.log();
+
+                        runSearch();
+                    });
+            })
+    })
+}
 
 // "View all roles":
 function view_Roles() {
