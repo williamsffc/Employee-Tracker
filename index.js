@@ -355,7 +355,8 @@ function update_Role() {
             ])
             .then(function (answer) {
 
-                var query = "UPDATE employee LEFT JOIN role on employee.role_id = role.role_id "; query += "SET  ? WHERE  ?";
+                var query = "UPDATE employee LEFT JOIN role on employee.role_id = role.role_id "; 
+                query += "SET  ? WHERE  ?";
 
                 connection.query(query,
                     [
@@ -415,14 +416,15 @@ function update_Manager() {
             ])
             .then(function (answer) {
 
-                var query = "UPDATE employee SET ? WHERE last_name ?";
+                var query = "UPDATE employee SET ? WHERE ? ";
 
-                connection.query(query,
+                connection.query(query,[
                     {
-                        last_name: answer.employee_list,
-                        last_name: answer.manager_list
-
+                        last_name: answer.employee_list
                     },
+                    {
+                        last_name: answer.manager_list
+                    }],
                     function (err, answer) {
                         if (err) throw err;
 
