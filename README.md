@@ -39,10 +39,10 @@ Also, mysql workbench was required.
 * [GitHub] - https://github.com/williamsffc
 
 ## **Screenshots:**
-<img src="assets/Capture1.JPG">
-<img src="assets/Capture2.JPG">
-<img src="assets/Capture3.JPG">
-<img src="assets/Capture4.JPG">
+<img src="Assets/Capture1.JPG">
+<img src="Assets/Capture2.JPG">
+<img src="Assets/Capture3.JPG">
+<img src="Assets/Capture4.JPG">
 
 -------------
 © Copyright - 2020
